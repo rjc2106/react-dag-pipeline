@@ -1,6 +1,6 @@
-import json
-from fastapi import FastAPI, Form
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Dict, Any
 
 app = FastAPI()
 
@@ -18,15 +18,15 @@ def read_root():
     return {'Ping': 'Pong'}
 
 @app.post('/pipelines/parse')
-def parse_pipeline(pipeline: str = Form(...)):
+def parse_pipeline(pipeline: Dict[str, Any]):
     """
-    Receives the pipeline data from the frontend, calculates nodes and edges,
+    Receives the pipeline JSON data from the frontend, calculates nodes and edges,
     and runs a Depth-First Search (DFS) to determine if it forms a valid DAG.
     """
     try:
-        data = json.loads(pipeline)
-        nodes = data.get('nodes', [])
-        edges = data.get('edges', [])
+        # FastAPI automatically parses the incoming JSON into a Python dictionary!
+        nodes = pipeline.get('nodes', [])
+        edges = pipeline.get('edges', [])
 
         num_nodes = len(nodes)
         num_edges = len(edges)
@@ -66,7 +66,7 @@ def parse_pipeline(pipeline: str = Form(...)):
                     is_dag = False
                     break
 
-        # 3. Return the exact JSON structure VectorShift requires
+        # 3. Return the exact JSON structure the frontend expects
         return {
             'num_nodes': num_nodes,
             'num_edges': num_edges,
