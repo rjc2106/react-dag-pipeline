@@ -1,70 +1,58 @@
-# Getting Started with Create React App
+# VectorShift Core: Pipeline DAG Validation Engine
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## 📖 Overview
+This module handles the visual construction and structural validation of our user-facing LLM/VectorDB pipelines. To prevent execution timeouts and systemic crashes in our backend pipeline runner, this service ensures that any user-constructed graph is a strictly valid **Directed Acyclic Graph (DAG)** before it enters the execution queue. 
 
-## Available Scripts
+## 🏗️ System Architecture
+my architecture is strictly decoupled to ensure the pipeline executor remains isolated from UI state:
 
-In the project directory, you can run:
+* **Client Interface (React + React Flow):** Manages the complex state of node interactions and edge connections. It acts purely as a state manager, parsing the visual canvas into a sanitized JSON payload.
+* **Validation API (FastAPI + NetworkX):** Acts as the gatekeeper. It consumes the graph payload, constructs an adjacency list, and utilizes a Depth-First Search (DFS) algorithm for cycle detection. 
 
-### `npm start`
+## 🔒 Security & Local Setup (Strict Requirement)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Security Notice:** To adhere to my internal security protocols and prevent dependency cross-contamination with other VectorShift microservices, **this application must be run inside an isolated Python virtual environment (`venv`).** Installing dependencies globally poses a security risk to your local development environment.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### 1. Initialize the Validation API (Backend)
+Navigate to the `backend` directory, establish the secure environment, and boot the server:
 
-### `npm test`
+`bash
+cd backend
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 1. Create the secure virtual environment
+python3 -m venv venv
 
-### `npm run build`
+# 2. Activate the environment (Required)
+source venv/bin/activate  
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# 3. Install isolated dependencies
+pip install fastapi uvicorn networkx pydantic
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# 4. Boot the server
+uvicorn main:app --reload
+`
+*The API will mount at `http://127.0.0.1:8000`.*
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### 2. Initialize the Client UI (Frontend)
+Open a new terminal session, navigate to the `frontend` directory, and start the development server:
 
-### `npm run eject`
+`bash
+cd frontend
+npm install
+npm start
+`
+*The client will mount at `http://localhost:3000`.*
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## 🧪 QA & Edge Case Testing
+Before pushing changes to the main branch, please manually verify the cycle detection logic via the local UI:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+1.  **Positive Case (Healthy Pipeline):** 
+    * Construct a linear flow: `Input Node` → `LLM Node` → `Output Node`. 
+    * Submit the pipeline. 
+    * Expected Result: The server validates the structure and returns `Is DAG: true`.
+2.  **Negative Case (Infinite Loop Prevention):** 
+    * Construct a cyclical flow: connect two `LLM Nodes` to each other to form a closed loop. 
+    * Submit the pipeline. 
+    * Expected Result: The DFS algorithm intercepts the cycle and returns `Is DAG: false`, preventing the execution engine from hanging.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    # frontend_technical_assessment by Rohan_Chakrborty

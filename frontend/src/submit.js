@@ -15,7 +15,7 @@ export const SubmitButton = () => {
             });
 
             const data = await response.json();
-            alert(`Number of Nodes: ${data.num_nodes}, Number of Edges: ${data.num_edges}, Is DAG: ${data.is_dag}`);
+            alert(`Number of Nodes: ${data.num_nodes}\nNumber of Edges: ${data.num_edges}\nIs DAG: ${data.is_dag}`);
         } catch (error) {
             console.error('Error submitting pipeline:', error);
             alert('Failed to submit pipeline. Check backend connection.');
@@ -23,8 +23,27 @@ export const SubmitButton = () => {
     };
 
     return (
-        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-            <button type="submit" onClick={handleSubmit}>Submit</button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+            <button 
+                type="submit" 
+                onClick={handleSubmit}
+                style={{
+                    backgroundColor: '#4F46E5', // Modern Indigo
+                    color: 'white',
+                    padding: '12px 24px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    transition: 'background-color 0.2s ease'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#4338CA'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#4F46E5'}
+            >
+                Submit Pipeline
+            </button>
         </div>
     );
 };
